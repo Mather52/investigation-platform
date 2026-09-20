@@ -1,0 +1,1 @@
+<div class="person <?= esc($role ?? '', 'attr') ?>"><div class="pa"><?= esc(initial($name)) ?></div><div><b><?= esc($name) ?></b><?php if (! empty($sub)): ?><small><?= esc($sub) ?></small><?php endif ?></div></div>

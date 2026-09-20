@@ -2,44 +2,44 @@
 
 namespace App\Controllers;
 
+use App\Libraries\CaseService;
 use CodeIgniter\Controller;
+use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Psr\Log\LoggerInterface;
 
-/**
- * BaseController provides a convenient place for loading components
- * and performing functions that are needed by all your controllers.
- *
- * Extend this class in any new controllers:
- * ```
- *     class Home extends BaseController
- * ```
- *
- * For security, be sure to declare any new methods as protected or private.
- */
 abstract class BaseController extends Controller
 {
-    /**
-     * Be sure to declare properties for any property fetch you initialized.
-     * The creation of dynamic property is deprecated in PHP 8.2.
-     */
+    protected $helpers = ['form', 'url', 'ui'];
 
-    // protected $session;
+    protected CaseService $cases;
 
-    /**
-     * @return void
-     */
     public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        // Load here all helpers you want to be available in your controllers that extend BaseController.
-        // Caution: Do not put the this below the parent::initController() call below.
-        // $this->helpers = ['form', 'url'];
-
-        // Caution: Do not edit this line.
         parent::initController($request, $response, $logger);
+        $this->cases = new CaseService();
+    }
 
-        // Preload any models, libraries, etc, here.
-        // $this->session = service('session');
+    /** يحمّل المعاملة ويتحقق من صلاحية الاطلاع عليها */
+    protected function loadCase(int $id): array
+    {
+        $case = $this->cases->find($id);
+        if ($case === null || ! $this->cases->canView($case)) {
+            throw PageNotFoundException::forPageNotFound('المعاملة غير موجودة أو غير متاحة لك.');
+        }
+
+        return $case;
+    }
+
+    /** يوقف الطلب برسالة إن لم تتحقق الصلاحية */
+    protected function deny(string $message = 'هذا الإجراء غير متاح لك في هذه المرحلة.')
+    {
+        return redirect()->back()->with('error', $message);
+    }
+
+    protected function uid(): int
+    {
+        return (int) session('user_id');
     }
 }

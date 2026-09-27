@@ -160,6 +160,9 @@ td .row { flex-wrap: nowrap; }
 .btn-danger { color: var(--r); border-color: #E3B7B3; }
 .btn-danger-solid { background: var(--danger); border-color: var(--danger); color: #fff; }
 .btn-danger-solid:hover { background: #962B25; }
+.btn-nafath { background: #1B7F4B; border-color: #1B7F4B; color: #fff; }
+.btn-nafath:hover { background: #156A3E; }
+.btn-nafath:disabled { opacity: .85; }
 .btn-ghost { border-color: transparent; background: transparent; color: var(--muted); }
 .btn-sm { height: 36px; padding: 0 14px; font-size: 13px; border-radius: 10px; }
 .btn:disabled { opacity: .5; cursor: not-allowed; }

@@ -28,7 +28,7 @@
             <?php if ($errs = session()->getFlashdata('errors')): ?><div class="alert alert-error"><ul class="flash-list"><?php foreach ($errs as $er): ?><li><?= esc($er) ?></li><?php endforeach ?></ul></div><?php endif ?>
             <?php if ($m = session()->getFlashdata('message')): ?><div class="alert alert-ok"><?= esc($m) ?></div><?php endif ?>
 
-            <button type="button" class="btn btn-primary" disabled title="يُفعّل بعد اعتماد الربط مع النفاذ الوطني"><?= icon('shield', 20) ?>الدخول عبر النفاذ الوطني الموحد (قريباً)</button>
+            <button type="button" class="btn btn-nafath" disabled title="يُفعّل بعد اعتماد الربط مع النفاذ الوطني"><?= icon('shield', 20) ?>الدخول عبر النفاذ الوطني الموحد (قريباً)</button>
             <div class="or">أو بحساب المدينة الطبية</div>
 
             <label class="field"><span class="lbl">اسم المستخدم</span><input class="input" type="text" name="username" value="<?= esc(old('username')) ?>" placeholder="الرقم الوظيفي أو اسم المستخدم" autocomplete="username" required></label>

@@ -2,7 +2,7 @@
 <?= $this->section('content') ?>
 <?php
 $tones = ['teal' => ['var(--t-bg)', 'var(--t)'], 'blue' => ['var(--b-bg)', 'var(--b)'], 'gray' => ['var(--n-bg)', 'var(--n)'], 'yellow' => ['var(--y-bg)', 'var(--y)']];
-$palette = ['#2E5A62', '#5E8F96', '#C08A2B', '#9DBFC3', '#D8C8A6', '#8A9294'];
+$palette = ['#1E5AA8', '#5B8FD1', '#C08A2B', '#9DBEE6', '#D8C8A6', '#8A9294'];
 ?>
 <div class="grid g6">
     <?php foreach ($kpis as [$label, $value, $ic, $tone]): ?>

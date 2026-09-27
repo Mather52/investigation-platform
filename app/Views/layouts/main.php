@@ -36,10 +36,11 @@ $nav = [
 </head>
 <body>
 <div class="app">
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar" aria-label="القائمة الجانبية" inert>
         <div class="brand">
             <div class="brand-logo"><?= icon('shield', 24) ?></div>
             <div><div class="brand-name">منصة التحقيق</div><div class="brand-sub">إدارة الشؤون القانونية والالتزام</div></div>
+            <button type="button" class="sidebar-close" data-nav-close aria-label="إغلاق القائمة"><?= icon('x', 20) ?></button>
         </div>
         <nav class="nav" aria-label="القائمة الرئيسية">
             <?php foreach ($nav as [$key, $label, $route, $ic, $roles]): if (! Access::hasAny($roles)) continue; ?>
@@ -63,9 +64,16 @@ $nav = [
         </div>
     </aside>
 
+    <div class="nav-backdrop" data-nav-close></div>
+
     <div class="content">
         <header class="page-header">
-            <div>
+            <div class="head-start">
+                <button type="button" class="menu-btn no-print" data-nav-toggle aria-controls="sidebar" aria-expanded="false" aria-label="فتح القائمة"><?= icon('menu', 22) ?><?php if ($unread + $consN > 0): ?><span class="dot"></span><?php endif ?></button>
+                <?php if (! empty($bare)): ?>
+                <div class="top-brand"><span class="brand-logo sm"><?= icon('shield', 20) ?></span><div><strong>منصة التحقيق</strong><small>إدارة الشؤون القانونية والالتزام</small></div></div>
+                <?php else: ?>
+                <div>
                 <div class="crumbs">
                     <a href="<?= site_url('dashboard') ?>"><?= icon('home', 16) ?>الرئيسية</a>
                     <?php $cr = $crumbs ?? []; foreach ($cr as $i => $c): [$ct, $cu] = is_array($c) ? $c : [$c, null]; ?>
@@ -75,6 +83,8 @@ $nav = [
                 </div>
                 <h1><?= esc($title ?? '') ?></h1>
                 <?php if (! empty($subtitle)): ?><div class="subtitle"><?= esc($subtitle) ?></div><?php endif ?>
+                </div>
+                <?php endif ?>
             </div>
             <div class="header-tools no-print">
                 <form class="search" method="get" action="<?= site_url('cases') ?>" role="search">

@@ -17,12 +17,12 @@ class Dashboard extends BaseController
         $c = static fn (string ...$codes) => array_sum(array_map(static fn ($k) => (int) ($counts[$k] ?? 0), $codes));
 
         $kpis = [
-            ['إجمالي المعاملات', array_sum($counts), 'folder', 'teal'],
-            ['المعاملات الجديدة', $c('new', 'with_gm', 'referred'), 'plus', 'blue'],
-            ['قيد التحقيق', $c('investigation'), 'search2', 'gray'],
-            ['بانتظار الاعتماد', $c('approval'), 'checkc', 'yellow'],
-            ['قيد تنفيذ التوصيات', $c('execution'), 'list', 'teal'],
-            ['المعاملات المؤرشفة', $c('archived', 'closed_no_action'), 'archive', 'gray'],
+            ['إجمالي المعاملات', array_sum($counts), 'folder', 'teal', 'cases'],
+            ['المعاملات الجديدة', $c('new', 'with_gm', 'referred'), 'plus', 'blue', 'cases?view=referred'],
+            ['قيد التحقيق', $c('investigation'), 'search2', 'gray', 'cases?view=investigation'],
+            ['بانتظار الاعتماد', $c('approval'), 'checkc', 'yellow', 'cases?view=approvals'],
+            ['قيد تنفيذ التوصيات', $c('execution'), 'list', 'teal', 'cases?view=execution'],
+            ['المعاملات المؤرشفة', $c('archived', 'closed_no_action'), 'archive', 'gray', 'cases?view=archive'],
         ];
 
         $byType = $this->cases->scope(
@@ -87,8 +87,17 @@ class Dashboard extends BaseController
         }
         unset($n);
 
+        $today = date('Y-m-d');
+        if (class_exists(\IntlDateFormatter::class)) {
+            $today = (new \IntlDateFormatter('ar@numbers=latn;calendar=gregorian', \IntlDateFormatter::FULL, \IntlDateFormatter::NONE))->format(time()) ?: $today;
+        }
+        $name = trim(preg_replace('/^د\.\s*/u', '', (string) session('full_name')));
+
         return view('dashboard/index', [
-            'title' => 'لوحة التحكم', 'subtitle' => 'ملخص أعمال قسم التحقيق وحالة المدد النظامية', 'active' => 'dashboard',
+            'title' => 'الرئيسية', 'bare' => true, 'active' => 'dashboard',
+            'greeting' => (int) date('G') < 12 ? 'صباح الخير' : 'مساء الخير',
+            'firstName' => $name === '' ? '' : explode(' ', $name)[0], 'today' => $today,
+            'canReports' => Access::hasAny(['investigator', 'head', 'legal', 'gm']),
             'kpis' => $kpis, 'stages' => $stages, 'counts' => $counts, 'byType' => $byType, 'bySource' => $bySource,
             'durations' => $durations, 'need' => $need,
         ]);

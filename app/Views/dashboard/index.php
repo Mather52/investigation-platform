@@ -4,12 +4,26 @@
 $tones = ['teal' => ['var(--t-bg)', 'var(--t)'], 'blue' => ['var(--b-bg)', 'var(--b)'], 'gray' => ['var(--n-bg)', 'var(--n)'], 'yellow' => ['var(--y-bg)', 'var(--y)']];
 $palette = ['#1E5AA8', '#5B8FD1', '#C08A2B', '#9DBEE6', '#D8C8A6', '#8A9294'];
 ?>
-<div class="grid g6">
-    <?php foreach ($kpis as [$label, $value, $ic, $tone]): ?>
-        <div class="card kpi">
-            <div class="kpi-top"><span><?= esc($label) ?></span><span class="kpi-ico" style="background: <?= $tones[$tone][0] ?>; color: <?= $tones[$tone][1] ?>;"><?= icon($ic, 18) ?></span></div>
+<section class="hero">
+    <div class="hero-text">
+        <span class="hero-date num"><?= icon('cal', 16) ?><?= esc($today) ?></span>
+        <h1><?= esc($greeting) ?><?= $firstName !== '' ? '، ' . esc($firstName) : '' ?></h1>
+        <p><?= $need === [] ? 'لا توجد معاملات بانتظار إجراء منك الآن.' : 'لديك <b class="num">' . count($need) . '</b> ' . (count($need) === 1 ? 'معاملة تحتاج' : 'معاملات تحتاج') . ' إلى إجراء.' ?></p>
+    </div>
+    <div class="hero-actions">
+        <a class="btn btn-light" href="<?= site_url('cases/new') ?>"><?= icon('plus', 18) ?>إنشاء مخالفة / شكوى</a>
+        <a class="btn btn-glass" href="<?= site_url('consultations/new') ?>"><?= icon('msg', 18) ?>طلب استشارة</a>
+        <?php if ($canReports): ?><a class="btn btn-glass" href="<?= site_url('reports') ?>"><?= icon('chart', 18) ?>التقارير</a><?php endif ?>
+    </div>
+</section>
+
+<div class="stats">
+    <?php foreach ($kpis as [$label, $value, $ic, $tone, $url]): ?>
+        <a class="stat" href="<?= site_url($url) ?>">
+            <span class="stat-ico" style="background: <?= $tones[$tone][0] ?>; color: <?= $tones[$tone][1] ?>;"><?= icon($ic, 20) ?></span>
             <strong class="num"><?= (int) $value ?></strong>
-        </div>
+            <span class="stat-label"><?= esc($label) ?></span>
+        </a>
     <?php endforeach ?>
 </div>
 

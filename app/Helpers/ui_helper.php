@@ -43,6 +43,7 @@ if (! function_exists('icon')) {
         'alert' => '<path d="M12 3l10 18H2z"/><path d="M12 10v4M12 17v.5"/>',
         'link' => '<path d="M10 14a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1"/><path d="M14 10a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1"/>',
         'x' => '<path d="M6 6l12 12M18 6L6 18"/>',
+        'menu' => '<path d="M4 6h16M4 12h16M4 18h16"/>',
         'target' => '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',
         'refresh' => '<path d="M20 11a8 8 0 10-2 6"/><path d="M20 4v7h-7"/>',
         'dots' => '<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',

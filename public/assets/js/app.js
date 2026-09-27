@@ -1,5 +1,26 @@
 // منصة التحقيق الإداري — تفاعلات بسيطة بدون مكتبات خارجية
 (function () {
+  // القائمة الجانبية المخفية: <button data-nav-toggle> يفتحها، و [data-nav-close] أو Esc يغلقها
+  var sidebar = document.getElementById('sidebar');
+  function setNav(open) {
+    if (!sidebar) { return; }
+    var hadFocus = sidebar.contains(document.activeElement);
+    document.body.classList.toggle('nav-open', open);
+    if (open) { sidebar.removeAttribute('inert'); } else { sidebar.setAttribute('inert', ''); }
+    document.querySelectorAll('[data-nav-toggle]').forEach(function (b) {
+      b.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (!open && hadFocus && b.offsetParent !== null) { b.focus(); }
+    });
+    if (open) { var first = sidebar.querySelector('.nav a'); if (first) { first.focus(); } }
+  }
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('[data-nav-toggle]')) { e.preventDefault(); setNav(!document.body.classList.contains('nav-open')); return; }
+    if (e.target.closest('[data-nav-close]')) { e.preventDefault(); setNav(false); }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && document.body.classList.contains('nav-open')) { setNav(false); }
+  });
+
   // فتح النوافذ المنبثقة: <button data-open="dialogId">
   document.addEventListener('click', function (e) {
     var opener = e.target.closest('[data-open]');

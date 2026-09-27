@@ -1,8 +1,10 @@
 <?php
 use App\Libraries\Access;
+use App\Libraries\ConsultationService;
 
 $active  = $active ?? '';
 $unread  = (int) db_connect()->table('notifications')->where('user_id', session('user_id'))->where('read_at', null)->countAllResults();
+$consN   = ConsultationService::safeNavCount();
 // [المفتاح، العنوان، الرابط، الأيقونة، الأدوار (فارغ = الكل)]
 $nav = [
     ['dashboard',     'الرئيسية',               'dashboard',                 'home',    []],
@@ -17,6 +19,7 @@ $nav = [
     ['approvals',     'الاعتمادات',             'cases?view=approvals',      'checkc',  ['head', 'legal', 'gm']],
     ['recs',          'التوصيات',               'cases?view=execution',      'list',    ['legal', 'gm']],
     ['archive',       'الأرشيف',                'cases?view=archive',        'archive', ['head', 'legal', 'gm']],
+    ['consultations', 'الاستشارات القانونية',   'consultations',             'msg',     []],
     ['reports',       'التقارير',               'reports',                   'chart',   ['investigator', 'head', 'legal', 'gm']],
     ['notifications', 'الإشعارات',              'notifications',             'bell',    []],
 ];
@@ -40,7 +43,10 @@ $nav = [
         </div>
         <nav class="nav" aria-label="القائمة الرئيسية">
             <?php foreach ($nav as [$key, $label, $route, $ic, $roles]): if (! Access::hasAny($roles)) continue; ?>
-                <a href="<?= site_url($route) ?>" class="<?= $active === $key ? 'is-active' : '' ?>"><?= icon($ic, 19) ?><span><?= esc($label) ?></span><?php if ($key === 'notifications' && $unread > 0): ?><span class="count num"><?= $unread ?></span><?php endif ?></a>
+                <?php if ($key === 'consultations'): ?><div class="nav-sep"></div><?php endif ?>
+                <?php $n = ['notifications' => $unread, 'consultations' => $consN][$key] ?? 0; ?>
+                <a href="<?= site_url($route) ?>" class="<?= $active === $key ? 'is-active' : '' ?>"><?= icon($ic, 19) ?><span><?= esc($label) ?></span><?php if ($n > 0): ?><span class="count num"><?= $n ?></span><?php endif ?></a>
+                <?php if ($key === 'consultations'): ?><div class="nav-sep"></div><?php endif ?>
             <?php endforeach ?>
             <?php if (Access::isAdmin()): ?>
                 <div class="nav-sep"></div>

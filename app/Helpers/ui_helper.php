@@ -106,7 +106,10 @@ if (! function_exists('label')) {
             'decision' => ['pending' => 'بانتظار', 'approved' => 'تم الاعتماد', 'returned' => 'أُعيدت للتعديل'],
             'rec' => ['not_started' => 'لم تبدأ', 'in_progress' => 'قيد التنفيذ', 'done' => 'تم التنفيذ'],
             'topic' => ['not_started' => 'لم يبدأ', 'in_progress' => 'قيد الإعداد', 'done' => 'مكتمل'],
-            'category' => ['new_case' => 'معاملات جديدة', 'invitation' => 'دعوات', 'session' => 'جلسات', 'statement' => 'طلبات إفادة', 'approval' => 'طلبات اعتماد', 'decision' => 'قرارات', 'attachment' => 'مرفقات', 'reply' => 'ردود'],
+            'category' => ['new_case' => 'معاملات جديدة', 'invitation' => 'دعوات', 'session' => 'جلسات', 'statement' => 'طلبات إفادة', 'approval' => 'طلبات اعتماد', 'decision' => 'قرارات', 'attachment' => 'مرفقات', 'reply' => 'ردود', 'consultation' => 'استشارات'],
+            'cons_status' => ['new' => 'جديدة', 'assigned' => 'مُسندة', 'answered' => 'تمت الإجابة', 'closed' => 'مغلقة'],
+            'ai_source' => ['library' => 'مكتبة الاستشارات المنشورة', 'api' => 'مزود الذكاء الاصطناعي', 'library:confidential' => 'مكتبة الاستشارات — استشارة سرية لا تُرسل خارج المنصة'],
+            'cons_action' => ['created' => 'تقديم الاستشارة', 'draft_generated' => 'توليد المسودة', 'draft_unavailable' => 'لا توجد مسودة', 'draft_failed' => 'تعذّر توليد المسودة', 'assigned' => 'إسناد', 'answered' => 'اعتماد الرد', 'closed' => 'إغلاق'],
             'level' => ['green' => 'عادي', 'yellow' => 'يقترب الموعد', 'red' => 'متأخر'],
         ];
 
@@ -127,6 +130,7 @@ if (! function_exists('tone')) {
             'rec' => ['not_started' => 'gray', 'in_progress' => 'yellow', 'done' => 'green'],
             'topic' => ['not_started' => 'gray', 'in_progress' => 'yellow', 'done' => 'green'],
             'level' => ['green' => 'green', 'yellow' => 'yellow', 'red' => 'red'],
+            'cons_status' => ['new' => 'blue', 'assigned' => 'yellow', 'answered' => 'green', 'closed' => 'gray'],
         ];
 
         return $map[$group][$value ?? ''] ?? 'gray';

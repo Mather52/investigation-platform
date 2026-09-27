@@ -45,6 +45,18 @@ $recTotal = (int) ($recs['total'] ?? 0);
     <?= partial('partials/card_close') ?>
 </div>
 
+<?= partial('partials/card_open', ['icon' => 'msg', 'title' => 'الاستشارات القانونية', 'right' => '<span class="muted num">الشهر الحالي: ' . date('Y-m') . '</span>']) ?>
+    <?php if ($consultations === null): ?><div class="empty">تعذّر تحميل إحصاءات الاستشارات.</div><?php else: ?>
+        <div class="grid g4">
+            <?php foreach ([['استشارات هذا الشهر', $consultations['total']], ['المُجاب عليها', $consultations['answered']], ['متوسط زمن الرد (يوم)', $consultations['avg_days'] ?? '—']] as [$l, $n]): ?>
+                <div class="kv"><span><?= $l ?></span><strong class="num" style="font-size: 26px;"><?= esc((string) $n) ?></strong></div>
+            <?php endforeach ?>
+            <div class="kv"><span>أكثر التصنيفات تكراراً</span><strong><?= esc($consultations['top'][0]['label'] ?? '—') ?></strong></div>
+        </div>
+        <?= $bars($consultations['top']) ?>
+    <?php endif ?>
+<?= partial('partials/card_close') ?>
+
 <?= partial('partials/card_open', ['icon' => 'users', 'title' => 'توزيع العمل على المحققين']) ?>
     <?php if ($workload === []): ?><div class="empty">لا توجد معاملات مسندة.</div><?php else: ?>
     <div class="table-wrap"><table>

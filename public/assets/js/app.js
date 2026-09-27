@@ -54,6 +54,54 @@
     if (msg && !window.confirm(msg)) { e.preventDefault(); }
   });
 
+  // نسخ نص إلى محرر: <button data-copy-from="id" data-copy-to="id">
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-copy-from]');
+    if (!btn) { return; }
+    e.preventDefault();
+    var from = document.getElementById(btn.getAttribute('data-copy-from'));
+    var to = document.getElementById(btn.getAttribute('data-copy-to'));
+    if (!from || !to) { return; }
+    if (to.value.trim() !== '' && !window.confirm('سيُستبدل النص الموجود في محرر الرد. هل تريد المتابعة؟')) { return; }
+    to.value = from.textContent.trim();
+    to.focus();
+  });
+
+  // إجابات مشابهة أثناء الكتابة: <div data-similar="url" data-source="inputId">
+  document.querySelectorAll('[data-similar]').forEach(function (box) {
+    var input = document.getElementById(box.getAttribute('data-source'));
+    var list = box.querySelector('[data-similar-list]');
+    var tpl = box.querySelector('template');
+    var empty = box.querySelector('[data-similar-empty]');
+    if (!input || !list || !tpl || !window.fetch) { return; }
+    var timer, last = input.value.trim();
+    function render(rows) {
+      list.textContent = '';
+      rows.forEach(function (r) {
+        var node = tpl.content.cloneNode(true);
+        node.querySelector('[data-f=subject]').textContent = r.subject;
+        node.querySelector('[data-f=ref]').textContent = r.ref_no;
+        node.querySelector('[data-f=category]').textContent = r.category || '';
+        node.querySelector('[data-f=answer]').textContent = r.answer;
+        list.appendChild(node);
+      });
+      if (empty) { empty.hidden = rows.length > 0; }
+    }
+    input.addEventListener('input', function () {
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        var q = input.value.trim();
+        if (q === last) { return; }
+        last = q;
+        if (q.length < 3) { render([]); return; }
+        fetch(box.getAttribute('data-similar') + '?q=' + encodeURIComponent(q), { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+          .then(function (res) { return res.ok ? res.json() : []; })
+          .then(function (rows) { if (q === last) { render(Array.isArray(rows) ? rows : []); } })
+          .catch(function () {});
+      }, 400);
+    });
+  });
+
   // تمرير المحادثة للأسفل
   document.querySelectorAll('.chat').forEach(function (c) { c.scrollTop = c.scrollHeight; });
 })();

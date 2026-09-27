@@ -310,6 +310,21 @@ dialog.modal::backdrop { background: rgba(15,30,33,.55); }
 .acks { background: var(--soft); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
 .center-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
 
+/* الاستشارات القانونية */
+.q-text { line-height: 1.9; white-space: pre-wrap; max-width: 75em; }
+.answer-box { border: 1px solid var(--line); border-inline-start: 4px solid var(--primary); border-radius: 14px; background: var(--primary-tint); padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; }
+.answer-box .q-text { color: var(--ink); }
+.draft-box { border: 1.5px dashed #D9B25F; border-radius: 14px; background: var(--y-bg); padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+.draft-box h3 { font-size: 16px; color: var(--y); display: flex; align-items: center; gap: 8px; }
+.draft-box .q-text { color: var(--ink-2); background: #fff; border-radius: 10px; padding: 14px 16px; max-height: 360px; overflow-y: auto; }
+.fixed-note { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--muted); background: var(--soft); border-radius: 10px; padding: 10px 14px; }
+.similar { display: flex; flex-direction: column; gap: 12px; }
+.similar-item { border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+.similar-item summary { list-style: none; cursor: pointer; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.similar-item summary::-webkit-details-marker { display: none; }
+.similar-item[open] { border-color: var(--primary); }
+.similar-body { padding: 0 18px 16px; display: flex; flex-direction: column; gap: 12px; }
+
 @media (max-width: 1200px) {
   .g6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }

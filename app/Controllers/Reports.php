@@ -2,6 +2,9 @@
 
 namespace App\Controllers;
 
+use App\Libraries\ConsultationService;
+use Throwable;
+
 class Reports extends BaseController
 {
     public function index()
@@ -43,11 +46,19 @@ class Reports extends BaseController
             }
         }
 
+        try {
+            $consultations = (new ConsultationService())->monthStats();
+        } catch (Throwable $e) {
+            log_message('error', 'Consultation stats: ' . $e->getMessage());
+            $consultations = null;
+        }
+
         return view('reports/index', [
             'title' => 'التقارير', 'subtitle' => 'تقارير دورية عن أعمال قسم التحقيق', 'active' => 'reports', 'crumbs' => ['التقارير'],
             'period' => $period, 'from' => $from, 'to' => $to,
             'kpis' => [['معاملات واردة', $created, 'plus'], ['معاملات منجزة', $closed, 'checkc'], ['قيد الإجراء الآن', $open, 'clock'], ['متأخرة الآن', $late, 'alert'], ['متوسط مدة الإنجاز (يوم)', $avg === null ? '—' : round((float) $avg, 1), 'chart']],
             'byType' => $byType, 'byDept' => $byDept, 'byStage' => $byStage, 'recs' => $recs, 'workload' => $workload, 'recipients' => $recipients,
+            'consultations' => $consultations,
         ]);
     }
 }

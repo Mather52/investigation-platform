@@ -174,7 +174,7 @@ class CaseService
         if ($file === null || ! $file->isValid() || $file->hasMoved()) {
             return null;
         }
-        $allowed = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png'];
+        $allowed = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'eml', 'msg'];
         $ext     = strtolower($file->getClientExtension());
         if (! in_array($ext, $allowed, true) || $file->getSize() > 20 * 1024 * 1024) {
             return null;

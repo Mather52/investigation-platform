@@ -45,15 +45,37 @@
     }
   });
 
-  // إظهار/إخفاء عناصر حسب قيمة: <div data-show-when="name=value">
+  // إظهار/إخفاء عناصر حسب قيمة: <div data-show-when="name=value"> أو "name!=value"
+  // مع data-disable-hidden تُعطَّل حقول العنصر المخفي فلا تُرسل، ويصبح [data-required] إلزامياً عند ظهوره فقط
   function syncConditional() {
     document.querySelectorAll('[data-show-when]').forEach(function (el) {
-      var parts = el.getAttribute('data-show-when').split('=');
+      var rule = el.getAttribute('data-show-when');
+      var negate = rule.indexOf('!=') > -1;
+      var parts = rule.split(negate ? '!=' : '=');
       var input = document.querySelector('[name="' + parts[0] + '"]:checked') || document.querySelector('select[name="' + parts[0] + '"]');
-      var show = input && input.value === parts[1];
+      var show = !!input && (negate ? input.value !== parts[1] : input.value === parts[1]);
       el.hidden = !show;
+      if (el.hasAttribute('data-disable-hidden')) {
+        el.querySelectorAll('input, select, textarea').forEach(function (c) {
+          c.disabled = !show;
+          if (c.hasAttribute('data-required')) { c.required = show; }
+        });
+      }
     });
   }
+
+  // بطاقات مصدر المعاملة: تحديث اسم المصدر ونصوص المساعدة حسب البطاقة المختارة
+  function syncSource() {
+    var picked = document.querySelector('input[name="source_code"]:checked');
+    if (!picked) { return; }
+    [['data-src-name', 'data-name'], ['data-ref-hint', 'data-hint-ref'], ['data-file-hint', 'data-hint-file']].forEach(function (m) {
+      document.querySelectorAll('[' + m[0] + ']').forEach(function (out) { out.textContent = picked.getAttribute(m[1]) || ''; });
+    });
+  }
+  document.addEventListener('change', function (e) {
+    if (e.target.matches('input[name="source_code"]')) { syncSource(); }
+  });
+  syncSource();
   document.addEventListener('change', syncConditional);
   syncConditional();
 

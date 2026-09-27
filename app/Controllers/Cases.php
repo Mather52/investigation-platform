@@ -7,6 +7,9 @@ use CodeIgniter\Exceptions\PageNotFoundException;
 
 class Cases extends BaseController
 {
+    /** أنواع ملف أصل المخالفة المقبولة من المصادر غير الكتابة المباشرة */
+    private const SOURCE_FILE_TYPES = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'eml', 'msg'];
+
     /** قوائم القائمة الجانبية: [العنوان، المراحل، مفتاح القائمة، الصفحة المستهدفة] */
     private const VIEWS = [
         'all'           => ['المعاملات', null, 'cases', null],
@@ -98,6 +101,7 @@ class Cases extends BaseController
             'description'    => 'required|min_length[20]',
             'external_ref'   => 'permit_empty|max_length[60]',
             'incident_place' => 'permit_empty|max_length[150]',
+            'source_date'    => 'permit_empty|valid_date[Y-m-d]',
         ];
         $messages = [
             'case_type_id' => ['required' => 'اختر نوع المعاملة.'],
@@ -108,6 +112,8 @@ class Cases extends BaseController
             'incident_date' => ['required' => 'حدد تاريخ الواقعة.', 'valid_date' => 'تاريخ الواقعة غير صحيح.'],
             'department_id' => ['required' => 'اختر الإدارة أو القسم.'],
             'description' => ['required' => 'اكتب وصف الواقعة.', 'min_length' => 'وصف الواقعة يجب ألا يقل عن 20 حرفاً.'],
+            'external_ref' => ['max_length' => 'الرقم المرجعي طويل جداً.'],
+            'source_date' => ['valid_date' => 'تاريخ المخالفة في النظام المصدر غير صحيح.'],
         ];
         if (! $this->validate($rules, $messages)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
@@ -116,6 +122,25 @@ class Cases extends BaseController
         $source = (string) $this->request->getPost('source_code');
         if ($source !== 'manual' && ! Access::hasAny(['legal', 'head'])) {
             return redirect()->back()->withInput()->with('error', 'الاستيراد من الأنظمة أو المستندات الورقية متاح لمدير الشؤون القانونية ورئيس التحقيقات فقط.');
+        }
+
+        // المصادر غير الكتابة المباشرة: الرقم المرجعي وأصل المخالفة إلزاميان
+        $isImport    = $source !== 'manual';
+        $externalRef = $isImport ? trim((string) $this->request->getPost('external_ref')) : '';
+        $sourceFile  = $isImport ? $this->request->getFile('source_file') : null;
+        if ($isImport) {
+            $errors = [];
+            if ($externalRef === '') {
+                $errors['external_ref'] = 'أدخل الرقم المرجعي في النظام المصدر.';
+            }
+            if ($sourceFile === null || ! $sourceFile->isValid()) {
+                $errors['source_file'] = 'أرفق أصل المخالفة من النظام المصدر.';
+            } elseif (! in_array(strtolower($sourceFile->getClientExtension()), self::SOURCE_FILE_TYPES, true) || $sourceFile->getSize() > 20 * 1024 * 1024) {
+                $errors['source_file'] = 'أصل المخالفة يجب أن يكون PDF أو JPG أو PNG أو DOC أو DOCX أو EML أو MSG، ولا يتجاوز 20 ميجابايت.';
+            }
+            if ($errors !== []) {
+                return redirect()->back()->withInput()->with('errors', $errors);
+            }
         }
 
         $accused = $this->resolveEmployees((array) $this->request->getPost('accused'));
@@ -132,7 +157,7 @@ class Cases extends BaseController
             'case_no'         => $caseNo,
             'case_type_id'    => (int) $this->request->getPost('case_type_id'),
             'source_code'     => $source,
-            'external_ref'    => $this->request->getPost('external_ref') ?: null,
+            'external_ref'    => $isImport ? $externalRef : null,
             'subject'         => $this->request->getPost('subject'),
             'description'     => $this->request->getPost('description'),
             'incident_date'   => $this->request->getPost('incident_date'),
@@ -153,10 +178,24 @@ class Cases extends BaseController
             $db->table('case_parties')->insert(['case_id' => $caseId, 'employee_id' => $complainant[0], 'party_role' => 'complainant']);
         }
 
+        $sourceAttachment = null;
+        if ($isImport) {
+            $sourceAttachment = $this->cases->storeUpload($sourceFile, $caseId, 'case');
+            if ($sourceAttachment === null) {
+                $db->transRollback();
+
+                return redirect()->back()->withInput()->with('errors', ['source_file' => 'أرفق أصل المخالفة من النظام المصدر.']);
+            }
+        }
+
         $files = $this->request->getFileMultiple('attachments') ?? [];
         $this->cases->storeUploads($files, $caseId);
 
-        $this->cases->log($caseId, 'created', $isDraft ? 'حفظ المعاملة كمسودة' : 'إنشاء المعاملة (' . $this->sourceName($source) . ')');
+        $origin = $this->sourceName($source) . ($isImport ? ' · الرقم المرجعي: ' . $externalRef : '');
+        $this->cases->log($caseId, 'created', $isDraft ? 'حفظ المعاملة كمسودة' . ($isImport ? ' (' . $origin . ')' : '') : 'إنشاء المعاملة (' . $origin . ')', $isImport ? [
+            'source' => $source, 'external_ref' => $externalRef,
+            'source_date' => $this->request->getPost('source_date') ?: null, 'source_attachment_id' => $sourceAttachment,
+        ] : []);
         if (! $isDraft) {
             $this->cases->notifyRole('legal', $caseId, 'new_case', 'معاملة جديدة', "وردت المعاملة {$caseNo} وتنتظر الإحالة.", "cases/{$caseId}/referral");
         }

@@ -330,9 +330,6 @@ dialog.modal::backdrop { background: rgba(6,42,69,.55); }
 .login-hero > * { position: relative; }
 .login-hero h1 { font-size: 42px; line-height: 1.35; margin-bottom: 14px; }
 .login-hero p { font-size: 17px; line-height: 1.9; color: var(--side-ink); max-width: 30em; }
-.login-points { list-style: none; margin: 26px 0 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
-.login-points li { display: flex; align-items: center; gap: 12px; font-size: 15px; color: #E4F2FB; }
-.login-points .pt { width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .login-foot { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #9CC6E4; }
 .login-panel { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 56px; background: #fff; }
 .login-card { width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 18px; }
@@ -486,7 +483,6 @@ dialog.modal::backdrop { background: rgba(6,42,69,.55); }
   .chat-head-end .secure { display: none; }
   .chat-thread { padding: 16px 12px; }
   .msg { max-width: 88%; }
-  .login-points { display: none; }
   .login-panel { padding: 28px 18px; }
   .hero { padding: 24px; }
   .hero h1 { font-size: 24px; }

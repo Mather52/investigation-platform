@@ -16,11 +16,6 @@
         <div>
             <h1>منصة أتمتة إجراءات التحقيق الإداري</h1>
             <p>إجراءات التحقيق في إطار آلي تحكمه الأنظمة واللوائح، من استلام المعاملة حتى صدور القرار.</p>
-            <ul class="login-points">
-                <li><span class="pt"><?= icon('folder', 18) ?></span>ملف واحد لكل معاملة بكل مستنداتها وإجراءاتها</li>
-                <li><span class="pt"><?= icon('clock', 18) ?></span>متابعة المدد النظامية وتنبيهات قبل التأخر</li>
-                <li><span class="pt"><?= icon('lock', 18) ?></span>سرية المعلومات وصلاحيات حسب الدور</li>
-            </ul>
         </div>
         <div class="login-foot"><?= icon('lock', 16) ?><span>اتصال آمن · قسم التحقيق</span></div>
     </section>
@@ -29,7 +24,7 @@
         <form class="login-card" method="post" action="<?= site_url('login') ?>" novalidate>
             <?= csrf_field() ?>
             <img class="login-logo" src="<?= base_url('assets/img/logo.png') ?>" alt="مدينة الملك عبدالله الطبية — تجمع مكة المكرمة الصحي">
-            <div class="login-title"><h2>تسجيل الدخول</h2><p class="muted">متاح لكافة موظفي المدينة الطبية</p></div>
+            <div class="login-title"><h2>تسجيل الدخول</h2></div>
 
             <?php if ($e = session()->getFlashdata('error')): ?><div class="alert alert-error"><?= icon('alert', 18) ?><span><?= esc($e) ?></span></div><?php endif ?>
             <?php if ($errs = session()->getFlashdata('errors')): ?><div class="alert alert-error"><ul class="flash-list"><?php foreach ($errs as $er): ?><li><?= esc($er) ?></li><?php endforeach ?></ul></div><?php endif ?>

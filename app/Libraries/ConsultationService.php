@@ -60,6 +60,35 @@ class ConsultationService
     }
 
     // ------------------------------------------------------------------
+    // تهيئة الجداول
+    // ------------------------------------------------------------------
+
+    /**
+     * ينشئ جداول الاستشارات إن لم تكن موجودة، من database/04_consultations.sql نفسه،
+     * فلا يحتاج المستخدم إلى استيراد الملف يدوياً. يُفحص مرة واحدة يومياً.
+     */
+    public function ensureSchema(): void
+    {
+        if (cache('consultations_schema_ok')) {
+            return;
+        }
+        $tables = ['consultation_categories', 'consultations', 'consultation_messages', 'consultation_actions'];
+        $this->db->resetDataCache();
+        $missing = array_filter($tables, fn ($t) => ! $this->db->tableExists($t, false));
+        if ($missing !== []) {
+            $sql = (string) file_get_contents(ROOTPATH . 'database/04_consultations.sql');
+            $sql = preg_replace(['/^\s*--.*$/m', '/^\s*USE\s+[^;]+;/mi'], '', $sql);
+            foreach (array_filter(array_map('trim', explode(';', $sql))) as $statement) {
+                $this->db->query($statement);
+            }
+            $this->db->resetDataCache();
+            self::$fields = [];
+            log_message('info', 'Consultations: created tables ' . implode(', ', $missing));
+        }
+        cache()->save('consultations_schema_ok', 1, 86400);
+    }
+
+    // ------------------------------------------------------------------
     // الأعمدة
     // ------------------------------------------------------------------
 

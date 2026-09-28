@@ -5,7 +5,11 @@ namespace App\Controllers;
 use App\Libraries\ConsultationService;
 use CodeIgniter\Database\Exceptions\DatabaseException;
 use CodeIgniter\Exceptions\PageNotFoundException;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
 use mysqli_sql_exception;
+use Psr\Log\LoggerInterface;
+use Throwable;
 
 /**
  * الاستشارات القانونية: محادثة بين الموظف وإدارة الشؤون القانونية.
@@ -18,6 +22,17 @@ class Consultations extends BaseController
     public function __construct()
     {
         $this->service = new ConsultationService();
+    }
+
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
+    {
+        parent::initController($request, $response, $logger);
+        try {
+            $this->service->ensureSchema();
+        } catch (Throwable $e) {
+            // تُعرض صفحة التوضيح من index إن بقيت الجداول ناقصة
+            log_message('error', 'Consultations schema: ' . $e->getMessage());
+        }
     }
 
     /** صفحة المحادثات: القائمة، والمحادثة المختارة أو نموذج محادثة جديدة */

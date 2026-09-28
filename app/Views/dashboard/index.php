@@ -22,6 +22,7 @@ if ($role === 'employee') {
 }
 ?>
 <section class="hero">
+    <span class="hero-art" aria-hidden="true"><?= icon('shield', 200) ?></span>
     <div class="hero-text">
         <span class="hero-date num"><?= icon('cal', 16) ?><?= esc($today) ?></span>
         <h1><?= esc($greeting) ?><?= $firstName !== '' ? '، ' . esc($firstName) : '' ?></h1>

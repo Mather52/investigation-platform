@@ -97,52 +97,25 @@
     if (msg && !window.confirm(msg)) { e.preventDefault(); }
   });
 
-  // نسخ نص إلى محرر: <button data-copy-from="id" data-copy-to="id">
-  document.addEventListener('click', function (e) {
-    var btn = e.target.closest('[data-copy-from]');
-    if (!btn) { return; }
-    e.preventDefault();
-    var from = document.getElementById(btn.getAttribute('data-copy-from'));
-    var to = document.getElementById(btn.getAttribute('data-copy-to'));
-    if (!from || !to) { return; }
-    if (to.value.trim() !== '' && !window.confirm('سيُستبدل النص الموجود في محرر الرد. هل تريد المتابعة؟')) { return; }
-    to.value = from.textContent.trim();
-    to.focus();
+  // المحادثة: النزول لآخر رسالة، وتكبير مربع الكتابة مع النص، و Ctrl + Enter للإرسال
+  document.querySelectorAll('[data-autoscroll]').forEach(function (t) { t.scrollTop = t.scrollHeight; });
+  document.querySelectorAll('textarea[data-autogrow]').forEach(function (ta) {
+    function grow() { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 180) + 'px'; }
+    ta.addEventListener('input', grow);
+    ta.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && ta.value.trim() !== '') { e.preventDefault(); ta.form.requestSubmit ? ta.form.requestSubmit() : ta.form.submit(); }
+    });
   });
 
-  // إجابات مشابهة أثناء الكتابة: <div data-similar="url" data-source="inputId">
-  document.querySelectorAll('[data-similar]').forEach(function (box) {
-    var input = document.getElementById(box.getAttribute('data-source'));
-    var list = box.querySelector('[data-similar-list]');
-    var tpl = box.querySelector('template');
-    var empty = box.querySelector('[data-similar-empty]');
-    if (!input || !list || !tpl || !window.fetch) { return; }
-    var timer, last = input.value.trim();
-    function render(rows) {
-      list.textContent = '';
-      rows.forEach(function (r) {
-        var node = tpl.content.cloneNode(true);
-        node.querySelector('[data-f=subject]').textContent = r.subject;
-        node.querySelector('[data-f=ref]').textContent = r.ref_no;
-        node.querySelector('[data-f=category]').textContent = r.category || '';
-        node.querySelector('[data-f=answer]').textContent = r.answer;
-        list.appendChild(node);
-      });
-      if (empty) { empty.hidden = rows.length > 0; }
-    }
-    input.addEventListener('input', function () {
-      clearTimeout(timer);
-      timer = setTimeout(function () {
-        var q = input.value.trim();
-        if (q === last) { return; }
-        last = q;
-        if (q.length < 3) { render([]); return; }
-        fetch(box.getAttribute('data-similar') + '?q=' + encodeURIComponent(q), { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
-          .then(function (res) { return res.ok ? res.json() : []; })
-          .then(function (rows) { if (q === last) { render(Array.isArray(rows) ? rows : []); } })
-          .catch(function () {});
-      }, 400);
-    });
+  // إظهار/إخفاء كلمة المرور: <button data-pw-toggle="inputId">
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-pw-toggle]');
+    if (!b) { return; }
+    var input = document.getElementById(b.getAttribute('data-pw-toggle'));
+    if (!input) { return; }
+    var show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+    b.setAttribute('aria-label', show ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور');
   });
 
   // تمرير المحادثة للأسفل

@@ -73,14 +73,12 @@ $routes->group('', ['filter' => AuthFilter::class], static function (RouteCollec
     $routes->post('recommendations/(:num)', 'Execution::updateRecommendation/$1');
     $routes->post('cases/(:num)/archive', 'Execution::archive/$1');
 
-    // الاستشارات القانونية (الصلاحيات تُفحص داخل الكنترولر)
+    // الاستشارات القانونية: محادثة (الصلاحيات تُفحص داخل الكنترولر)
     $routes->get('consultations', 'Consultations::index');
     $routes->get('consultations/new', 'Consultations::create');
-    $routes->get('consultations/similar', 'Consultations::similar');
     $routes->post('consultations', 'Consultations::store');
     $routes->get('consultations/(:num)', 'Consultations::show/$1');
-    $routes->post('consultations/(:num)/assign', 'Consultations::assign/$1');
-    $routes->post('consultations/(:num)/answer', 'Consultations::answer/$1');
+    $routes->post('consultations/(:num)/messages', 'Consultations::message/$1');
     $routes->post('consultations/(:num)/close', 'Consultations::close/$1');
 
     // الإشعارات والتقارير

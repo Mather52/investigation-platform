@@ -18,26 +18,25 @@
     $byCode  = array_column($sources, null, 'code');
     $ordered = array_merge(array_intersect_key($srcInfo, $byCode), array_diff_key($byCode, $srcInfo));
     $picked  = (string) old('source_code', 'manual');
-    if (! isset($byCode[$picked]) || ($picked !== 'manual' && ! $canImport)) {
-        $picked = 'manual';
+    $ordered = array_intersect_key($ordered, array_flip($allowedSources));
+    if (! isset($ordered[$picked])) {
+        $picked = (string) array_key_first($ordered);
     }
     ?>
     <?= partial('partials/card_open', ['icon' => 'share', 'title' => 'مصدر المعاملة']) ?>
         <div class="source-cards" role="radiogroup" aria-label="مصدر المعاملة">
-            <?php foreach (array_keys($ordered) as $code): $src = $byCode[$code]; [$ic, $desc, $refHint, $fileHint] = $srcInfo[$code] ?? ['file', '', '', '']; $locked = $code !== 'manual' && ! $canImport; ?>
-                <label class="src-card <?= $locked ? 'is-locked' : '' ?>" <?= $locked ? 'title="متاح لمدير الشؤون القانونية ورئيس القسم فقط"' : '' ?>>
-                    <input type="radio" name="source_code" value="<?= esc($code) ?>" <?= $picked === $code ? 'checked' : '' ?> <?= $locked ? 'disabled' : '' ?>
+            <?php foreach (array_keys($ordered) as $code): $src = $byCode[$code]; [$ic, $desc, $refHint, $fileHint] = $srcInfo[$code] ?? ['file', '', '', '']; ?>
+                <label class="src-card">
+                    <input type="radio" name="source_code" value="<?= esc($code) ?>" <?= $picked === $code ? 'checked' : '' ?>
                            data-name="<?= esc($src['name_ar']) ?>" data-hint-ref="<?= esc($refHint) ?>" data-hint-file="<?= esc($fileHint) ?>">
                     <span class="src-ico"><?= icon($ic, 22) ?></span>
                     <b><?= esc($src['name_ar']) ?></b>
                     <small><?= esc($desc) ?></small>
-                    <?= $code === 'manual' ? badge('لجميع الموظفين', 'green') : badge('الشؤون القانونية ورئيس القسم', 'yellow') ?>
-                    <?php if ($locked): ?><span class="sr-only">غير متاح: يتطلب دور الشؤون القانونية أو رئيس القسم</span><?php endif ?>
+                    <?= $code === 'manual' ? badge('للموظفين', 'green') : badge('الشؤون القانونية ورئيس قسم التحقيق', 'yellow') ?>
                 </label>
             <?php endforeach ?>
         </div>
         <?= field_error('source_code') ?>
-        <?php if (! $canImport): ?><span class="hint"><?= icon('lock', 14) ?> الاستيراد من الأنظمة والمستندات الورقية والبريد متاح لمدير الشؤون القانونية ورئيس القسم فقط.</span><?php endif ?>
     <?= partial('partials/card_close') ?>
 
     <?php $refHint = $srcInfo[$picked][2] ?? ''; $fileHint = $srcInfo[$picked][3] ?? ''; ?>
@@ -74,7 +73,8 @@
         <div class="grid g3">
             <div class="field"><span class="lbl">رقم المعاملة</span><div class="ro"><span class="num">INV-<?= esc($preview) ?></span><span class="tag">يُولَّد آلياً</span></div></div>
             <div class="field"><span class="lbl">تاريخ الإنشاء</span><div class="ro"><span class="num"><?= date('Y-m-d') ?></span><span class="tag">آلي</span></div></div>
-            <div class="field"><span class="lbl">حالة المعاملة</span><div class="ro"><span><?= badge('جديدة', 'teal') ?> <span class="muted">— تتحكم بها المنصة آلياً</span></span></div></div>
+            <div class="field"><span class="lbl">الموعد النهائي لاتخاذ الإجراء</span><div class="ro deadline"><span><?= icon('clock', 16) ?> <b class="num"><?= esc($deadline) ?></b></span><span class="tag num">خلال <?= (int) $deadlineDays ?> أيام</span></div>
+                <span class="hint">يُحسب آلياً من مدة الإنذار الأحمر للمعاملات الجديدة.</span></div>
 
             <label class="field"><span class="lbl">نوع المعاملة <span class="req">*</span></span>
                 <select class="select" name="case_type_id" required><option value="">اختر نوع المعاملة</option>
@@ -117,8 +117,8 @@
             <label class="field"><span class="lbl">مكان الواقعة</span><input class="input" name="incident_place" value="<?= esc(old('incident_place')) ?>" placeholder="المبنى أو القسم"></label>
         </div>
         <label class="field"><span class="lbl">وصف المخالفة / الواقعة <span class="req">*</span></span>
-            <textarea class="textarea" name="description" rows="6" minlength="20" placeholder="اكتب وصفاً واضحاً ومختصراً للواقعة أو المخالفة، مع ذكر الزمان والمكان والأطراف المعنية…" required><?= esc(old('description')) ?></textarea>
-            <span class="hint">الحد الأدنى 20 حرفاً</span><?= field_error('description') ?></label>
+            <textarea class="textarea" name="description" rows="6" placeholder="اكتب وصفاً واضحاً ومختصراً للواقعة أو المخالفة، مع ذكر الزمان والمكان والأطراف المعنية…" required><?= esc(old('description')) ?></textarea>
+            <?= field_error('description') ?></label>
     <?= partial('partials/card_close') ?>
 
     <?= partial('partials/card_open', ['icon' => 'clip', 'title' => 'المرفقات']) ?>

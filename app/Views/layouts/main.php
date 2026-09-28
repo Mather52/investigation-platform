@@ -43,15 +43,22 @@ $nav = [
             <button type="button" class="sidebar-close" data-nav-close aria-label="إغلاق القائمة"><?= icon('x', 20) ?></button>
         </div>
         <nav class="nav" aria-label="القائمة الرئيسية">
-            <?php foreach ($nav as [$key, $label, $route, $ic, $roles]): if (! Access::hasAny($roles)) continue; ?>
-                <?php if ($key === 'consultations'): ?><div class="nav-sep"></div><?php endif ?>
-                <?php $n = ['notifications' => $unread, 'consultations' => $consN][$key] ?? 0; ?>
-                <a href="<?= site_url($route) ?>" class="<?= $active === $key ? 'is-active' : '' ?>"><?= icon($ic, 19) ?><span><?= esc($label) ?></span><?php if ($n > 0): ?><span class="count num"><?= $n ?></span><?php endif ?></a>
-                <?php if ($key === 'consultations'): ?><div class="nav-sep"></div><?php endif ?>
+            <?php
+            // عنوان المجموعة يظهر قبل أول عنصر مرئي منها
+            $groupOf = static fn (string $key) => match ($key) {
+                'dashboard', 'cases', 'new' => 'عام',
+                'consultations', 'reports', 'notifications' => 'الخدمات',
+                default => 'مراحل المعاملة',
+            };
+            $group = null;
+            foreach ($nav as [$key, $label, $route, $ic, $roles]): if (! Access::hasAny($roles)) continue;
+                if ($groupOf($key) !== $group): $group = $groupOf($key); ?><div class="nav-group"><?= esc($group) ?></div><?php endif;
+                $n = ['notifications' => $unread, 'consultations' => $consN][$key] ?? 0; ?>
+                <a href="<?= site_url($route) ?>" class="<?= $active === $key ? 'is-active' : '' ?>"><span class="nav-ico"><?= icon($ic, 18) ?></span><span><?= esc($label) ?></span><?php if ($n > 0): ?><span class="count num"><?= $n ?></span><?php endif ?></a>
             <?php endforeach ?>
             <?php if (Access::isAdmin()): ?>
-                <div class="nav-sep"></div>
-                <a href="<?= site_url('admin/users') ?>" class="<?= $active === 'admin' ? 'is-active' : '' ?>"><?= icon('gear', 19) ?><span>المستخدمون والإعدادات</span></a>
+                <div class="nav-group">الإدارة</div>
+                <a href="<?= site_url('admin/users') ?>" class="<?= $active === 'admin' ? 'is-active' : '' ?>"><span class="nav-ico"><?= icon('gear', 18) ?></span><span>المستخدمون والإعدادات</span></a>
             <?php endif ?>
         </nav>
         <div class="user-box">

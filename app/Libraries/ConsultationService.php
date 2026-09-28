@@ -8,11 +8,11 @@ use RuntimeException;
 use Throwable;
 
 /**
- * منطق الاستشارات القانونية المشترك: القراءة، الصلاحيات، السجل، الإشعارات، البحث في المكتبة.
+ * منطق الاستشارات القانونية: محادثة بين الموظف وإدارة الشؤون القانونية.
+ * القراءة، الصلاحيات، الرسائل، السجل، الإشعارات.
  *
- * الجداول consultations و consultation_categories و consultation_actions قائمة مسبقاً في قاعدة البيانات
- * ولا يُعدَّل مخططها. الأعمدة التي لم يُحدَّد اسمها في المتطلبات تُقرأ من قاعدة البيانات
- * مرة واحدة لكل طلب (انظر CANDIDATES)، وتُوحَّد أسماؤها في الاستعلامات عبر الأسماء المستعارة.
+ * الجداول في database/04_consultations.sql. إن كانت الجداول قائمة مسبقاً بأسماء أعمدة مختلفة
+ * فالأعمدة غير الثابتة تُقرأ من قاعدة البيانات (انظر CANDIDATES) وتُوحَّد بالأسماء المستعارة.
  */
 class ConsultationService
 {
@@ -104,11 +104,6 @@ class ConsultationService
         return ! in_array($level ?? '', self::PUBLIC_LEVELS, true);
     }
 
-    public function hasAssignment(): bool
-    {
-        return $this->col('consultations', 'assigned') !== null;
-    }
-
     /** درجات السرية المتاحة كما يعرّفها العمود في قاعدة البيانات */
     public function confidentialityOptions(): array
     {
@@ -127,13 +122,7 @@ class ConsultationService
     // الصلاحيات
     // ------------------------------------------------------------------
 
-    /** مستشار الشؤون القانونية (دور legal تحديداً): يسند ويعتمد الرد */
-    public static function isCounsel(): bool
-    {
-        return in_array('legal', Access::roles(), true);
-    }
-
-    /** يطّلع على كل الاستشارات والمسودات: legal و admin */
+    /** الشؤون القانونية (ومدير النظام): تطّلع على كل المحادثات وترد عليها */
     public static function isStaff(): bool
     {
         return Access::hasAny(['legal']);
@@ -154,9 +143,9 @@ class ConsultationService
     // ------------------------------------------------------------------
 
     /**
-     * استعلام موحّد الأسماء. المسودة المقترحة لا تُقرأ من قاعدة البيانات إطلاقاً إلا مع $withDraft.
+     * استعلام موحّد الأسماء مع وقت آخر نشاط ونص آخر رسالة في المحادثة.
      */
-    public function builder(bool $withDraft = false): BaseBuilder
+    public function builder(): BaseBuilder
     {
         $t        = 'consultations';
         $name     = $this->must('consultation_categories', 'name');
@@ -174,7 +163,8 @@ class ConsultationService
             $optional($this->col($t, 'assigned_at'), 'assigned_at'),
             $optional($this->col($t, 'read'), 'owner_read_at'),
             $optional($this->col($t, 'closed_at'), 'closed_at'),
-            $withDraft ? 'c.ai_draft, c.ai_source, c.ai_generated_at' : 'NULL AS ai_draft, NULL AS ai_source, NULL AS ai_generated_at',
+            '(SELECT MAX(m.created_at) FROM consultation_messages m WHERE m.consultation_id = c.id) AS last_message_at',
+            '(SELECT m.body FROM consultation_messages m WHERE m.consultation_id = c.id ORDER BY m.id DESC LIMIT 1) AS last_message',
             "cat.{$name} AS category_name",
             'COALESCE(oe.full_name, ou.username) AS owner_name', 'ou.username AS owner_username', 'oe.employee_no AS owner_no',
             'oe.job_title AS owner_title', 'od.name_ar AS owner_department',
@@ -196,51 +186,73 @@ class ConsultationService
         return $b;
     }
 
-    public function find(int $id, bool $withDraft = false): ?array
+    public function find(int $id): ?array
     {
-        return $this->builder($withDraft)->where('c.id', $id)->get()->getRowArray();
+        return $this->builder()->where('c.id', $id)->get()->getRowArray();
     }
 
-    /** استشارات المستخدم الحالي */
+    /** استشارات المستخدم الحالي، الأحدث أولاً */
     public function mine(): array
     {
-        return $this->builder()->where('c.' . $this->must('consultations', 'owner'), (int) session('user_id'))
-            ->orderBy('c.created_at', 'DESC')->get()->getResultArray();
+        return $this->conversations(false);
     }
 
-    /** تبويبات صندوق الوارد لدى الشؤون القانونية */
-    public function inbox(string $tab): array
+    /**
+     * قائمة المحادثات مرتبة بآخر نشاط: للشؤون القانونية كل المحادثات، ولغيرها محادثات المستخدم فقط.
+     * $waiting يقصرها على المحادثات بانتظار رد الشؤون القانونية.
+     */
+    public function conversations(bool $all, bool $waiting = false): array
     {
         $b = $this->builder();
-        $this->applyTab($b, $tab);
-        $order = in_array($tab, ['answered', 'library'], true) ? 'c.answered_at' : 'c.created_at';
+        if (! $all) {
+            $b->where('c.' . $this->must('consultations', 'owner'), (int) session('user_id'));
+        }
+        if ($waiting) {
+            $b->whereIn('c.status', self::OPEN_STATUSES);
+        }
 
-        return $b->orderBy($order, $tab === 'new' ? 'ASC' : 'DESC')->limit(200)->get()->getResultArray();
+        return $b->orderBy('COALESCE((SELECT MAX(m2.created_at) FROM consultation_messages m2 WHERE m2.consultation_id = c.id), c.created_at)', 'DESC', false)
+            ->limit(300)->get()->getResultArray();
     }
 
-    public function inboxCounts(): array
+    /** عدد المحادثات بانتظار رد الشؤون القانونية */
+    public function waitingCount(): int
     {
-        $out = [];
-        foreach (['new', 'mine', 'answered', 'library'] as $tab) {
-            if ($tab === 'mine' && ! $this->hasAssignment()) {
-                continue;
-            }
-            $b = $this->db->table('consultations c');
-            $this->applyTab($b, $tab);
-            $out[$tab] = $b->countAllResults();
+        return $this->db->table('consultations')->whereIn('status', self::OPEN_STATUSES)->countAllResults();
+    }
+
+    /**
+     * رسائل المحادثة بالترتيب: السؤال الأول، ثم الرد المعتمد السابق إن وُجد (من الإصدار السابق)، ثم الرسائل.
+     * كل رسالة: body, created_at, user_id, name, from_owner
+     */
+    public function thread(array $c): array
+    {
+        $out = [[
+            'body' => $c['body'], 'created_at' => $c['created_at'], 'user_id' => (int) $c['owner_id'],
+            'name' => $c['owner_name'], 'from_owner' => true,
+        ]];
+        if ($c['answer'] !== null && $c['answer'] !== '' && $c['answered_at'] !== null) {
+            $out[] = ['body' => $c['answer'], 'created_at' => $c['answered_at'], 'user_id' => (int) $c['answered_by'], 'name' => $c['answered_by_name'], 'from_owner' => false];
         }
+        $rows = $this->db->table('consultation_messages m')
+            ->select('m.body, m.created_at, m.user_id, COALESCE(e.full_name, u.username) AS name')
+            ->join('users u', 'u.id = m.user_id', 'left')->join('employees e', 'e.id = u.employee_id', 'left')
+            ->where('m.consultation_id', (int) $c['id'])->orderBy('m.id')->get()->getResultArray();
+        foreach ($rows as $r) {
+            $r['user_id']    = (int) $r['user_id'];
+            $r['from_owner'] = $r['user_id'] === (int) $c['owner_id'];
+            $out[]           = $r;
+        }
+        usort($out, static fn ($a, $b) => strcmp((string) $a['created_at'], (string) $b['created_at']));
 
         return $out;
     }
 
-    private function applyTab(BaseBuilder $b, string $tab): void
+    public function addMessage(int $id, string $body): void
     {
-        match ($tab) {
-            'mine'     => $b->where('c.' . $this->must('consultations', 'assigned'), (int) session('user_id'))->where('c.status', 'assigned'),
-            'answered' => $b->where('c.status', 'answered'),
-            'library'  => $b->where('c.is_published', 1),
-            default    => $b->where('c.status', 'new'),
-        };
+        $this->db->table('consultation_messages')->insert([
+            'consultation_id' => $id, 'user_id' => (int) session('user_id'), 'body' => $body,
+        ]);
     }
 
     public function categories(): array
@@ -359,85 +371,6 @@ class ConsultationService
         }
         $this->db->table('notifications')->where('user_id', (int) session('user_id'))->where('read_at', null)
             ->where('link', 'consultations/' . $c['id'])->update(['read_at' => date('Y-m-d H:i:s')]);
-    }
-
-    // ------------------------------------------------------------------
-    // المكتبة والبحث
-    // ------------------------------------------------------------------
-
-    /** كلمات البحث من النص بعد حذف أدوات الربط الشائعة */
-    public static function keywords(string $text, int $max = 8): array
-    {
-        static $stop = ['في', 'من', 'على', 'إلى', 'الى', 'عن', 'ما', 'ماذا', 'هل', 'أن', 'ان', 'إن', 'التي', 'الذي', 'الذين', 'مع', 'هذا', 'هذه', 'ذلك', 'تلك',
-            'أو', 'او', 'كان', 'كانت', 'لا', 'لم', 'لن', 'كيف', 'متى', 'أين', 'اين', 'لماذا', 'بعد', 'قبل', 'عند', 'حول', 'بين', 'كل', 'أي', 'اي', 'غير',
-            'يجوز', 'يمكن', 'هناك', 'لدي', 'لدى', 'عليه', 'عليها', 'فيه', 'فيها', 'منه', 'منها', 'بشأن', 'حيث', 'أنا', 'انا', 'نحن', 'هو', 'هي'];
-        $words = preg_split('/[^\p{L}\p{N}]+/u', mb_strtolower($text), -1, PREG_SPLIT_NO_EMPTY) ?: [];
-        $out   = [];
-        foreach ($words as $w) {
-            if (in_array($w, $stop, true)) {
-                continue;
-            }
-            // إزالة أداة التعريف لتوسيع المطابقة: "الإجازة" تطابق "إجازة"
-            if (mb_strlen($w) > 4 && preg_match('/^(وال|بال|فال|كال|لل|ال)/u', $w, $m)) {
-                $w = mb_substr($w, mb_strlen($m[1]));
-            }
-            if (mb_strlen($w) >= 3 && ! in_array($w, $out, true)) {
-                $out[] = $w;
-            }
-            if (count($out) >= $max) {
-                break;
-            }
-        }
-
-        return $out;
-    }
-
-    /**
-     * أقرب الاستشارات المنشورة (is_published = 1) للنص، مرتبة بعدد الكلمات المطابقة.
-     * $fields من: subject, body, answer. تُعاد بعد إخفاء بيانات مقدميها.
-     */
-    public function searchLibrary(string $text, array $fields, int $limit = 3, ?int $excludeId = null): array
-    {
-        $words = self::keywords($text);
-        if ($words === []) {
-            return [];
-        }
-        $cols = array_map(fn ($f) => 'c.' . ($f === 'body' ? $this->must('consultations', 'body') : $f), $fields);
-        $parts = [];
-        foreach ($words as $w) {
-            $like = $this->db->escape('%' . $this->db->escapeLikeString($w) . '%');
-            foreach ($cols as $i => $col) {
-                // المطابقة في الموضوع أثقل وزناً
-                $parts[] = "(CASE WHEN {$col} LIKE {$like} ESCAPE '!' THEN " . ($i === 0 ? 2 : 1) . ' ELSE 0 END)';
-            }
-        }
-        $score = implode(' + ', $parts);
-
-        $b = $this->builder()->select("({$score}) AS score", false)
-            ->where('c.is_published', 1)->where('c.answer IS NOT NULL', null, false)
-            ->where("({$score}) >", 0, false);
-        if ($excludeId !== null) {
-            $b->where('c.id !=', $excludeId);
-        }
-        $rows = $b->orderBy('score', 'DESC')->orderBy('c.answered_at', 'DESC')->limit($limit)->get()->getResultArray();
-
-        return array_map(fn ($r) => $this->anonymize($r), $rows);
-    }
-
-    /** يخفي بيانات مقدم الاستشارة من النصوص ويحذف حقول هويته */
-    public function anonymize(array $r): array
-    {
-        $needles = array_values(array_filter([$r['owner_name'] ?? null, $r['owner_no'] ?? null, $r['owner_username'] ?? null], static fn ($v) => is_string($v) && mb_strlen(trim($v)) >= 3));
-        foreach (['subject', 'body', 'answer'] as $f) {
-            if (isset($r[$f]) && $needles !== []) {
-                $r[$f] = str_replace($needles, '[مُخفى]', (string) $r[$f]);
-            }
-        }
-        foreach (['owner_id', 'owner_name', 'owner_username', 'owner_no', 'owner_title', 'owner_department', 'owner_read_at', 'ai_draft', 'ai_source', 'ai_generated_at'] as $f) {
-            unset($r[$f]);
-        }
-
-        return $r;
     }
 
     // ------------------------------------------------------------------

@@ -83,8 +83,10 @@ class Cases extends BaseController
             'sources' => $db->table('case_sources')->get()->getResultArray(),
             'departments' => $db->table('departments')->where('is_active', 1)->orderBy('name_ar')->get()->getResultArray(),
             'employees' => $this->employeeList(),
-            'canImport' => Access::hasAny(['legal', 'head']),
+            'allowedSources' => $this->allowedSources(),
             'preview' => date('Y') . '-XXXX',
+            'deadlineDays' => $days = $this->newCaseDays(),
+            'deadline' => date('Y-m-d', strtotime("+{$days} days")),
         ]);
     }
 
@@ -98,7 +100,7 @@ class Cases extends BaseController
             'subject'        => 'required|max_length[255]',
             'incident_date'  => 'required|valid_date[Y-m-d]',
             'department_id'  => 'required|is_not_unique[departments.id]',
-            'description'    => 'required|min_length[20]',
+            'description'    => 'required',
             'external_ref'   => 'permit_empty|max_length[60]',
             'incident_place' => 'permit_empty|max_length[150]',
             'source_date'    => 'permit_empty|valid_date[Y-m-d]',
@@ -111,7 +113,7 @@ class Cases extends BaseController
             'source_code' => ['required' => 'اختر مصدر المعاملة.', 'is_not_unique' => 'مصدر غير معروف.'],
             'incident_date' => ['required' => 'حدد تاريخ الواقعة.', 'valid_date' => 'تاريخ الواقعة غير صحيح.'],
             'department_id' => ['required' => 'اختر الإدارة أو القسم.'],
-            'description' => ['required' => 'اكتب وصف الواقعة.', 'min_length' => 'وصف الواقعة يجب ألا يقل عن 20 حرفاً.'],
+            'description' => ['required' => 'اكتب وصف الواقعة.'],
             'external_ref' => ['max_length' => 'الرقم المرجعي طويل جداً.'],
             'source_date' => ['valid_date' => 'تاريخ المخالفة في النظام المصدر غير صحيح.'],
         ];
@@ -120,8 +122,10 @@ class Cases extends BaseController
         }
 
         $source = (string) $this->request->getPost('source_code');
-        if ($source !== 'manual' && ! Access::hasAny(['legal', 'head'])) {
-            return redirect()->back()->withInput()->with('error', 'الاستيراد من الأنظمة أو المستندات الورقية متاح لمدير الشؤون القانونية ورئيس التحقيقات فقط.');
+        if (! in_array($source, $this->allowedSources(), true)) {
+            return redirect()->back()->withInput()->with('error', $source === 'manual'
+                ? 'الكتابة المباشرة متاحة للموظفين. اختر مصدر المعاملة من المصادر المتاحة لك.'
+                : 'الاستيراد من الأنظمة أو المستندات الورقية أو البريد متاح لمدير الشؤون القانونية ورئيس قسم التحقيق فقط.');
         }
 
         // المصادر غير الكتابة المباشرة: الرقم المرجعي وأصل المخالفة إلزاميان
@@ -358,6 +362,25 @@ class Cases extends BaseController
         }
 
         return array_values($ids);
+    }
+
+    /**
+     * مصادر المعاملة المتاحة للمستخدم: الكتابة المباشرة للموظفين،
+     * والمصادر الأربعة الأخرى لمدير الشؤون القانونية ورئيس قسم التحقيق، ومدير النظام يملك الكل.
+     */
+    private function allowedSources(): array
+    {
+        if (Access::isAdmin()) {
+            return ['manual', 'paper', 'etqan', 'efada', 'email'];
+        }
+
+        return Access::hasAny(['legal', 'head']) ? ['paper', 'etqan', 'efada', 'email'] : ['manual'];
+    }
+
+    /** مدة الإنذار الأحمر للمعاملة الجديدة (الموعد النهائي لاتخاذ أول إجراء) */
+    private function newCaseDays(): int
+    {
+        return (int) (db_connect()->table('alert_settings')->select('red_days')->where('rule_code', 'new_case')->get()->getRow('red_days') ?? 7);
     }
 
     private function sourceName(string $code): string

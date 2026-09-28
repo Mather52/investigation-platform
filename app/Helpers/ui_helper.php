@@ -44,6 +44,8 @@ if (! function_exists('icon')) {
         'link' => '<path d="M10 14a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1"/><path d="M14 10a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1"/>',
         'x' => '<path d="M6 6l12 12M18 6L6 18"/>',
         'menu' => '<path d="M4 6h16M4 12h16M4 18h16"/>',
+        'back' => '<path d="M9 6l6 6-6 6"/>',
+        'gear' => '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
         'target' => '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',
         'refresh' => '<path d="M20 11a8 8 0 10-2 6"/><path d="M20 4v7h-7"/>',
         'dots' => '<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
@@ -108,8 +110,7 @@ if (! function_exists('label')) {
             'rec' => ['not_started' => 'لم تبدأ', 'in_progress' => 'قيد التنفيذ', 'done' => 'تم التنفيذ'],
             'topic' => ['not_started' => 'لم يبدأ', 'in_progress' => 'قيد الإعداد', 'done' => 'مكتمل'],
             'category' => ['new_case' => 'معاملات جديدة', 'invitation' => 'دعوات', 'session' => 'جلسات', 'statement' => 'طلبات إفادة', 'approval' => 'طلبات اعتماد', 'decision' => 'قرارات', 'attachment' => 'مرفقات', 'reply' => 'ردود', 'consultation' => 'استشارات'],
-            'cons_status' => ['new' => 'جديدة', 'assigned' => 'مُسندة', 'answered' => 'تمت الإجابة', 'closed' => 'مغلقة'],
-            'ai_source' => ['library' => 'مكتبة الاستشارات المنشورة', 'api' => 'مزود الذكاء الاصطناعي', 'library:confidential' => 'مكتبة الاستشارات — استشارة سرية لا تُرسل خارج المنصة'],
+            'cons_status' => ['new' => 'بانتظار الرد', 'assigned' => 'بانتظار الرد', 'answered' => 'تم الرد', 'closed' => 'مغلقة'],
             'cons_action' => ['created' => 'تقديم الاستشارة', 'draft_generated' => 'توليد المسودة', 'draft_unavailable' => 'لا توجد مسودة', 'draft_failed' => 'تعذّر توليد المسودة', 'assigned' => 'إسناد', 'answered' => 'اعتماد الرد', 'closed' => 'إغلاق'],
             'level' => ['green' => 'عادي', 'yellow' => 'يقترب الموعد', 'red' => 'متأخر'],
         ];

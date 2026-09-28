@@ -32,7 +32,7 @@ $others = array_values(array_filter($participants, fn ($p) => $p['role_label'] !
                 <?php foreach (array_slice($participants, 0, 2) as $p): if ($p['role_label'] === $s['party_role'] && $p['party_id'] == $s['party_id']) continue; ?>
                     <div class="tile"><div class="face"><?= esc(initial($p['name'])) ?></div><span class="cap"><?= esc($p['name']) ?> · <?= $p['role_label'] === 'investigator' ? 'المحقق' : label('party', $p['role_label']) ?></span></div>
                 <?php endforeach ?>
-                <?php if (count($participants) < 3): ?><div class="tile"><span class="muted" style="color: #A8C1E3;">لا يوجد مشارك إضافي</span></div><?php endif ?>
+                <?php if (count($participants) < 3): ?><div class="tile"><span class="muted" style="color: #A9D0EA;">لا يوجد مشارك إضافي</span></div><?php endif ?>
             </div>
             <div class="controls">
                 <?php if ($s['meeting_link']): ?><a class="icon-btn" href="<?= esc($s['meeting_link'], 'attr') ?>" target="_blank" rel="noopener" title="فتح رابط الجلسة"><?= icon('video', 22) ?></a><?php endif ?>

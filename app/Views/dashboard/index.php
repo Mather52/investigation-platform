@@ -2,7 +2,7 @@
 <?= $this->section('content') ?>
 <?php
 $tones   = ['teal' => ['var(--t-bg)', 'var(--t)'], 'blue' => ['var(--b-bg)', 'var(--b)'], 'gray' => ['var(--n-bg)', 'var(--n)'], 'yellow' => ['var(--y-bg)', 'var(--y)'], 'red' => ['var(--r-bg)', 'var(--r)']];
-$palette = ['#1E5AA8', '#5B8FD1', '#C08A2B', '#9DBEE6', '#D8C8A6', '#8A9294'];
+$palette = ['#0E74B8', '#2CA8E0', '#C08A2B', '#9DD3EE', '#D8C8A6', '#8A9294'];
 $isStaff = in_array($role, ['head', 'legal', 'gm', 'admin'], true);
 
 // الأزرار السريعة حسب الدور: [العنوان، الرابط، الأيقونة]
@@ -22,7 +22,7 @@ if ($role === 'employee') {
 }
 ?>
 <section class="hero">
-    <span class="hero-art" aria-hidden="true"><?= icon('shield', 200) ?></span>
+    <img class="hero-art" src="<?= base_url('assets/img/emblem.png') ?>" alt="" aria-hidden="true">
     <div class="hero-text">
         <span class="hero-date num"><?= icon('cal', 16) ?><?= esc($today) ?></span>
         <h1><?= esc($greeting) ?><?= $firstName !== '' ? '، ' . esc($firstName) : '' ?></h1>

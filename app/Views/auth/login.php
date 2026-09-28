@@ -6,12 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>تسجيل الدخول — منصة التحقيق الإداري</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+    <link rel="icon" type="image/png" href="<?= base_url('assets/img/favicon.png') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>">
 </head>
 <body>
 <div class="login">
     <section class="login-hero">
-        <div class="brand" style="border: none; padding: 0;"><div class="brand-logo" style="width: 56px; height: 56px;"><?= icon('shield', 30) ?></div><div><div class="brand-name">منصة التحقيق</div><div class="brand-sub" style="font-size: 13px;">المدينة الطبية · إدارة الشؤون القانونية والالتزام</div></div></div>
+        <div class="brand" style="border: none; padding: 0;"><div class="brand-logo" style="width: 60px; height: 60px;"><img src="<?= base_url('assets/img/emblem.png') ?>" alt=""></div><div><div class="brand-name">منصة التحقيق</div><div class="brand-sub" style="font-size: 13px;">مدينة الملك عبدالله الطبية · إدارة الشؤون القانونية والالتزام</div></div></div>
         <div>
             <h1>منصة أتمتة إجراءات التحقيق الإداري</h1>
             <p>إجراءات التحقيق في إطار آلي تحكمه الأنظمة واللوائح، من استلام المعاملة حتى صدور القرار.</p>
@@ -27,7 +28,8 @@
     <section class="login-panel">
         <form class="login-card" method="post" action="<?= site_url('login') ?>" novalidate>
             <?= csrf_field() ?>
-            <div><h2>تسجيل الدخول</h2><p class="muted">متاح لكافة موظفي المدينة الطبية</p></div>
+            <img class="login-logo" src="<?= base_url('assets/img/logo.png') ?>" alt="مدينة الملك عبدالله الطبية — تجمع مكة المكرمة الصحي">
+            <div class="login-title"><h2>تسجيل الدخول</h2><p class="muted">متاح لكافة موظفي المدينة الطبية</p></div>
 
             <?php if ($e = session()->getFlashdata('error')): ?><div class="alert alert-error"><?= icon('alert', 18) ?><span><?= esc($e) ?></span></div><?php endif ?>
             <?php if ($errs = session()->getFlashdata('errors')): ?><div class="alert alert-error"><ul class="flash-list"><?php foreach ($errs as $er): ?><li><?= esc($er) ?></li><?php endforeach ?></ul></div><?php endif ?>

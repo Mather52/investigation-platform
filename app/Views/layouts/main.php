@@ -32,13 +32,14 @@ $nav = [
     <title><?= esc($title ?? 'منصة التحقيق') ?> — منصة التحقيق الإداري</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+    <link rel="icon" type="image/png" href="<?= base_url('assets/img/favicon.png') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>">
 </head>
 <body>
 <div class="app">
     <aside class="sidebar" id="sidebar" aria-label="القائمة الجانبية" inert>
         <div class="brand">
-            <div class="brand-logo"><?= icon('shield', 24) ?></div>
+            <div class="brand-logo"><img src="<?= base_url('assets/img/emblem.png') ?>" alt="شعار مدينة الملك عبدالله الطبية"></div>
             <div><div class="brand-name">منصة التحقيق</div><div class="brand-sub">إدارة الشؤون القانونية والالتزام</div></div>
             <button type="button" class="sidebar-close" data-nav-close aria-label="إغلاق القائمة"><?= icon('x', 20) ?></button>
         </div>
@@ -78,7 +79,7 @@ $nav = [
             <div class="head-start">
                 <button type="button" class="menu-btn no-print" data-nav-toggle aria-controls="sidebar" aria-expanded="false" aria-label="فتح القائمة"><?= icon('menu', 22) ?><?php if ($unread + $consN > 0): ?><span class="dot"></span><?php endif ?></button>
                 <?php if (! empty($bare)): ?>
-                <div class="top-brand"><span class="brand-logo sm"><?= icon('shield', 20) ?></span><div><strong>منصة التحقيق</strong><small>إدارة الشؤون القانونية والالتزام</small></div></div>
+                <div class="top-brand"><span class="brand-logo sm"><img src="<?= base_url('assets/img/emblem.png') ?>" alt=""></span><div><strong>منصة التحقيق</strong><small>مدينة الملك عبدالله الطبية · إدارة الشؤون القانونية والالتزام</small></div></div>
                 <?php else: ?>
                 <div>
                 <div class="crumbs">

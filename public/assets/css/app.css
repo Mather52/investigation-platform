@@ -334,10 +334,10 @@ dialog.modal::backdrop { background: rgba(6,42,69,.55); }
 .login-points li { display: flex; align-items: center; gap: 12px; font-size: 15px; color: #E4F2FB; }
 .login-points .pt { width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .login-foot { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #9CC6E4; }
-.login-panel { flex: 1; display: flex; align-items: center; justify-content: center; padding: 32px; }
-.login-card { width: 460px; max-width: 100%; background: #fff; border: 1px solid var(--line); border-radius: 24px; padding: 40px; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 20px 60px rgba(11,34,51,.08); }
+.login-panel { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 56px; background: #fff; }
+.login-card { width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 18px; }
 .login-card h2 { font-size: 26px; }
-.login-logo { display: block; width: 190px; height: auto; margin: 0 auto 2px; }
+.login-logo { display: block; width: 170px; height: auto; margin: 0 auto 2px; }
 .login-title { text-align: center; }
 .login-card .btn-primary { width: 100%; height: 52px; font-size: 16px; }
 .or { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 13px; }
@@ -487,6 +487,7 @@ dialog.modal::backdrop { background: rgba(6,42,69,.55); }
   .chat-thread { padding: 16px 12px; }
   .msg { max-width: 88%; }
   .login-points { display: none; }
+  .login-panel { padding: 28px 18px; }
   .hero { padding: 24px; }
   .hero h1 { font-size: 24px; }
   .top-brand small { display: none; }

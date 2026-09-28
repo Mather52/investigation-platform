@@ -13,7 +13,7 @@ $recTotal = (int) ($recs['total'] ?? 0);
 ?>
 <div class="row between no-print">
     <div class="chips">
-        <?php foreach ($labels as $k => $l): ?><a class="chip <?= $period === $k ? 'is-active' : '' ?>" href="<?= site_url('reports?period=' . $k) ?>"><?= $l ?></a><?php endforeach ?>
+        <?php foreach (array_intersect_key($labels, array_flip($periods)) as $k => $l): ?><a class="chip <?= $period === $k ? 'is-active' : '' ?>" href="<?= site_url('reports?period=' . $k) ?>"><?= $l ?></a><?php endforeach ?>
     </div>
     <button class="btn" type="button" onclick="window.print()"><?= icon('file', 18) ?>طباعة / حفظ PDF</button>
 </div>

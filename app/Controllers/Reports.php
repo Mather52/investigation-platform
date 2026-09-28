@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Libraries\Access;
 use App\Libraries\ConsultationService;
 use Throwable;
 
@@ -9,7 +10,18 @@ class Reports extends BaseController
 {
     public function index()
     {
-        $period = $this->request->getGet('period') ?? 'monthly';
+        // الفترات المتاحة حسب الدور (تصور الشاشات، شريحة الإحصائيات):
+        // أسبوعية للمحقق ورئيس القسم، شهرية لمدير الشؤون القانونية، ربعية لرئيس القسم ومدير الشؤون القانونية
+        $allowed = [];
+        foreach (['weekly' => ['investigator', 'head'], 'monthly' => ['legal', 'gm'], 'quarterly' => ['head', 'legal', 'gm']] as $p => $roles) {
+            if (Access::hasAny($roles)) {
+                $allowed[] = $p;
+            }
+        }
+        $period = (string) ($this->request->getGet('period') ?? '');
+        if (! in_array($period, $allowed, true)) {
+            $period = $allowed[0] ?? 'weekly';
+        }
         $days   = ['weekly' => 7, 'monthly' => 30, 'quarterly' => 90][$period] ?? 30;
         $to     = date('Y-m-d 23:59:59');
         $from   = date('Y-m-d 00:00:00', strtotime('-' . ($days - 1) . ' days'));
@@ -55,7 +67,7 @@ class Reports extends BaseController
 
         return view('reports/index', [
             'title' => 'التقارير', 'subtitle' => 'تقارير دورية عن أعمال قسم التحقيق', 'active' => 'reports', 'crumbs' => ['التقارير'],
-            'period' => $period, 'from' => $from, 'to' => $to,
+            'period' => $period, 'periods' => $allowed, 'from' => $from, 'to' => $to,
             'kpis' => [['معاملات واردة', $created, 'plus'], ['معاملات منجزة', $closed, 'checkc'], ['قيد الإجراء الآن', $open, 'clock'], ['متأخرة الآن', $late, 'alert'], ['متوسط مدة الإنجاز (يوم)', $avg === null ? '—' : round((float) $avg, 1), 'chart']],
             'byType' => $byType, 'byDept' => $byDept, 'byStage' => $byStage, 'recs' => $recs, 'workload' => $workload, 'recipients' => $recipients,
             'consultations' => $consultations,

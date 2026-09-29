@@ -21,7 +21,6 @@ $nav = [
     ['archive',       'الأرشيف',                'cases?view=archive',        'archive', ['head', 'legal', 'gm']],
     ['consultations', 'الاستشارات القانونية',   'consultations',             'msg',     []],
     ['reports',       'التقارير',               'reports',                   'chart',   ['investigator', 'head', 'legal', 'gm']],
-    ['notifications', 'الإشعارات',              'notifications',             'bell',    []],
 ];
 ?>
 <!doctype html>
@@ -48,13 +47,13 @@ $nav = [
             // عنوان المجموعة يظهر قبل أول عنصر مرئي منها
             $groupOf = static fn (string $key) => match ($key) {
                 'dashboard', 'cases', 'new' => 'عام',
-                'consultations', 'reports', 'notifications' => 'الخدمات',
+                'consultations', 'reports' => 'الخدمات',
                 default => 'مراحل المعاملة',
             };
             $group = null;
             foreach ($nav as [$key, $label, $route, $ic, $roles]): if (! Access::hasAny($roles)) continue;
                 if ($groupOf($key) !== $group): $group = $groupOf($key); ?><div class="nav-group"><?= esc($group) ?></div><?php endif;
-                $n = ['notifications' => $unread, 'consultations' => $consN][$key] ?? 0; ?>
+                $n = $key === 'consultations' ? $consN : 0; ?>
                 <a href="<?= site_url($route) ?>" class="<?= $active === $key ? 'is-active' : '' ?>"><span class="nav-ico"><?= icon($ic, 18) ?></span><span><?= esc($label) ?></span><?php if ($n > 0): ?><span class="count num"><?= $n ?></span><?php endif ?></a>
             <?php endforeach ?>
             <?php if (Access::isAdmin()): ?>
@@ -77,7 +76,7 @@ $nav = [
     <div class="content">
         <header class="page-header">
             <div class="head-start">
-                <button type="button" class="menu-btn no-print" data-nav-toggle aria-controls="sidebar" aria-expanded="false" aria-label="فتح القائمة"><?= icon('menu', 22) ?><?php if ($unread + $consN > 0): ?><span class="dot"></span><?php endif ?></button>
+                <button type="button" class="menu-btn no-print" data-nav-toggle aria-controls="sidebar" aria-expanded="false" aria-label="فتح القائمة"><?= icon('menu', 22) ?><?php if ($consN > 0): ?><span class="dot"></span><?php endif ?></button>
                 <?php if (! empty($bare)): ?>
                 <div class="top-brand"><span class="brand-logo sm"><img src="<?= base_url('assets/img/emblem.png') ?>" alt=""></span><div><strong>منصة التحقيق</strong><small>مدينة الملك عبدالله الطبية · إدارة الشؤون القانونية والالتزام</small></div></div>
                 <?php else: ?>

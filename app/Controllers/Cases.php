@@ -366,15 +366,16 @@ class Cases extends BaseController
 
     /**
      * مصادر المعاملة المتاحة للمستخدم: الكتابة المباشرة للموظفين،
-     * والمصادر الأربعة الأخرى لمدير الشؤون القانونية ورئيس قسم التحقيق، ومدير النظام يملك الكل.
+     * والمصادر الأربعة الأخرى لمدير الشؤون القانونية ورئيس قسم التحقيق، ومدير النظام وحده يملك الكل.
      */
     private function allowedSources(): array
     {
-        if (Access::isAdmin()) {
-            return ['manual', 'paper', 'etqan', 'efada', 'email'];
+        // الدور الفعلي أولاً: الشؤون القانونية ورئيس القسم للمصادر الأربعة حتى لو كان معه دور مدير النظام
+        if (array_intersect(['legal', 'head'], Access::roles()) !== []) {
+            return ['paper', 'etqan', 'efada', 'email'];
         }
 
-        return Access::hasAny(['legal', 'head']) ? ['paper', 'etqan', 'efada', 'email'] : ['manual'];
+        return Access::isAdmin() ? ['manual', 'paper', 'etqan', 'efada', 'email'] : ['manual'];
     }
 
     /** مدة الإنذار الأحمر للمعاملة الجديدة (الموعد النهائي لاتخاذ أول إجراء) */

@@ -74,6 +74,9 @@ class Cases extends BaseController
 
     public function create()
     {
+        if (! self::canCreate()) {
+            return redirect()->to(site_url('cases'))->with('error', 'إنشاء المخالفات والشكاوى غير متاح لدورك.');
+        }
         $db = db_connect();
 
         return view('cases/create', [
@@ -83,7 +86,7 @@ class Cases extends BaseController
             'sources' => $db->table('case_sources')->get()->getResultArray(),
             'departments' => $db->table('departments')->where('is_active', 1)->orderBy('name_ar')->get()->getResultArray(),
             'employees' => $this->employeeList(),
-            'allowedSources' => $this->allowedSources(),
+            'allowedSources' => self::allowedSources(),
             'preview' => date('Y') . '-XXXX',
             'deadlineDays' => $days = $this->newCaseDays(),
             'deadline' => date('Y-m-d', strtotime("+{$days} days")),
@@ -92,6 +95,9 @@ class Cases extends BaseController
 
     public function store()
     {
+        if (! self::canCreate()) {
+            return redirect()->to(site_url('cases'))->with('error', 'إنشاء المخالفات والشكاوى غير متاح لدورك.');
+        }
         $rules = [
             'case_type_id'   => 'required|is_not_unique[case_types.id]',
             'source_code'    => 'required|is_not_unique[case_sources.code]',
@@ -122,7 +128,7 @@ class Cases extends BaseController
         }
 
         $source = (string) $this->request->getPost('source_code');
-        if (! in_array($source, $this->allowedSources(), true)) {
+        if (! in_array($source, self::allowedSources(), true)) {
             return redirect()->back()->withInput()->with('error', $source === 'manual'
                 ? 'الكتابة المباشرة متاحة للموظفين. اختر مصدر المعاملة من المصادر المتاحة لك.'
                 : 'الاستيراد من الأنظمة أو المستندات الورقية أو البريد متاح لمدير الشؤون القانونية ورئيس قسم التحقيق فقط.');
@@ -365,17 +371,31 @@ class Cases extends BaseController
     }
 
     /**
-     * مصادر المعاملة المتاحة للمستخدم: الكتابة المباشرة للموظفين،
-     * والمصادر الأربعة الأخرى لمدير الشؤون القانونية ورئيس قسم التحقيق، ومدير النظام وحده يملك الكل.
+     * مصادر المعاملة المتاحة للمستخدم: الكتابة المباشرة للموظف، والمصادر الأربعة الأخرى
+     * لمدير الشؤون القانونية ورئيس قسم التحقيق، ومدير النظام وحده يملك الكل.
+     * المحقق والمدير العام التنفيذي لا ينشئان معاملات.
      */
-    private function allowedSources(): array
+    private static function allowedSources(): array
     {
+        $roles = Access::roles();
         // الدور الفعلي أولاً: الشؤون القانونية ورئيس القسم للمصادر الأربعة حتى لو كان معه دور مدير النظام
-        if (array_intersect(['legal', 'head'], Access::roles()) !== []) {
+        if (array_intersect(['legal', 'head'], $roles) !== []) {
             return ['paper', 'etqan', 'efada', 'email'];
         }
+        if (Access::isAdmin()) {
+            return ['manual', 'paper', 'etqan', 'efada', 'email'];
+        }
+        if (array_intersect(['investigator', 'gm'], $roles) !== []) {
+            return [];
+        }
 
-        return Access::isAdmin() ? ['manual', 'paper', 'etqan', 'efada', 'email'] : ['manual'];
+        return ['manual'];
+    }
+
+    /** هل يستطيع المستخدم الحالي إنشاء مخالفة أو شكوى؟ */
+    public static function canCreate(): bool
+    {
+        return self::allowedSources() !== [];
     }
 
     /** مدة الإنذار الأحمر للمعاملة الجديدة (الموعد النهائي لاتخاذ أول إجراء) */

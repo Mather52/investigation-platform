@@ -9,7 +9,7 @@ $consN   = ConsultationService::safeNavCount();
 $nav = [
     ['dashboard',     'الرئيسية',               'dashboard',                 'home',    []],
     ['cases',         'المعاملات',              'cases',                     'folder',  []],
-    ['new',           'إنشاء مخالفة / شكوى',    'cases/new',                 'plus',    []],
+    ['new',           'إنشاء مخالفة / شكوى',    'cases/new',                 'plus',    ['employee', 'legal', 'head']],
     ['referred',      'المعاملات المحالة',      'cases?view=referred',       'share',   ['legal', 'gm', 'head']],
     ['investigation', 'المعاملات قيد التحقيق',  'cases?view=investigation',  'search2', ['investigator', 'head', 'legal']],
     ['sessions',      'الجلسات',                'cases?view=sessions',       'video',   ['investigator', 'head', 'legal']],

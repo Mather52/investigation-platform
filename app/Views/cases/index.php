@@ -2,7 +2,7 @@
 <?= $this->section('content') ?>
 <?php $open = partial('partials/card_open', [
     'icon' => 'folder', 'title' => $title,
-    'right' => '<a class="btn btn-primary btn-sm" href="' . site_url('cases/new') . '">' . icon('plus', 16) . 'معاملة جديدة</a>',
+    'right' => \App\Controllers\Cases::canCreate() ? '<a class="btn btn-primary btn-sm" href="' . site_url('cases/new') . '">' . icon('plus', 16) . 'معاملة جديدة</a>' : '',
 ]); ?>
 <?= $open ?>
     <form class="row" method="get" action="<?= site_url('cases') ?>">
